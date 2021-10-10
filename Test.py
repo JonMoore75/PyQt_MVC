@@ -74,40 +74,6 @@ class MainWindow(QMainWindow):
             cmd = self.key_table[key]
             self.ExecuteCmd(cmd)
 
-    # Key_Signal = Signal(Cmds)
-    #
-    # def __init__(self, button_list):
-    #     super(QMainWindow, self).__init__()
-    #
-    #     central_widget = QWidget(self)
-    #     self.setCentralWidget(central_widget)
-    #     ui_layout = QGridLayout()
-    #     central_widget.setLayout(ui_layout)
-    #
-    #     self.display = QLabel()
-    #     ui_layout.addWidget(self.display)
-    #
-    #     self.buttons = {}
-    #     for button in button_list:
-    #         self.buttons[button] = QPushButton(button)
-    #         ui_layout.addWidget(self.buttons[button])
-    #
-    #     self.key_table = {QtCore.Qt.Key_Plus: Cmds.INC, QtCore.Qt.Key_Minus: Cmds.DEC}
-
-    # def Connect(self, func, func_map, key_func):
-    #     for button in self.buttons:
-    #         print('Connecting '+button+' button')
-    #         print(func_map)
-    #
-    #         # Need to use this form of lambda to get local copy of button variable
-    #         # otherwise button will be last value in the list for ALL buttons
-    #         # lambda's (or local functions) use value at call time NOT creation!
-    #         # See https://stackoverflow.com/questions/10452770/python-lambdas-binding-to-local-values
-    #         self.buttons[button].clicked.connect(lambda state, x=button: func(x))
-    #         self.buttons[button].clicked.connect(func_map[button])
-    #
-    #     self.Key_Signal.connect(key_func)
-
 
 class Controller:
     def __init__(self, _model, _view):
@@ -119,21 +85,24 @@ class Controller:
 
     def Increment(self):
         print('Increment called')
-        self.model.value += 1
+        self.model.Increment()
         self.view.UpdateDisplay(self.model.value)
 
     def Decrement(self):
         print('Decrement called')
-        self.model.value -= 1
+        self.model.Decrement()
         self.view.UpdateDisplay(self.model.value)
-
-    # def ClickHandler(self, button):
-    #     print(button+' pressed, routed to ClickHandler')
 
 
 @dataclass
 class Model:
     value: int = 0
+
+    def Increment(self):
+        self.value += 1
+
+    def Decrement(self):
+        self.value -= 1
 
 ###############################################################################
 
