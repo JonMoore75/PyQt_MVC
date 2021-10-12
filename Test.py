@@ -13,6 +13,7 @@ Signal, Slot = pyqtSignal, pyqtSlot
 class Cmds(Enum):
     INC = auto()
     DEC = auto()
+    NUM = auto()
 
 
 # This implementation decouples the UI view, model and control classes fairly well.  Downsides to this approach are
@@ -22,12 +23,15 @@ class Cmds(Enum):
 # PyQt ket codes?
 
 class MainWindow(QMainWindow):
-
+    intSignal = Signal(int)
+    
     def __init__(self, button_map):
         super(QMainWindow, self).__init__()
 
         # Maps to map commands, keys and functions
         self.key_table = {QtCore.Qt.Key_Plus: Cmds.INC, QtCore.Qt.Key_Minus: Cmds.DEC}
+        self.key_table.update({k: Cmds.NUM for k in range(QtCore.Qt.Key_0, QtCore.Qt.Key_9+1)})
+        print(self.key_table)
         self.func_map = {}
 
         # Set UI layout
@@ -52,10 +56,14 @@ class MainWindow(QMainWindow):
             # See https://stackoverflow.com/questions/10452770/python-lambdas-binding-to-local-values
             self.buttons[cmd].clicked.connect(lambda state, x=cmd: self.ExecuteCmd(x))
 
-    def ExecuteCmd(self, cmd):
+    def ExecuteCmd(self, cmd, data=None):
         """ Takes a command enum code and calls the corresponding function """
         if cmd in self.func_map:
-            self.func_map[cmd]()
+            if data is not None:
+                self.func_map[cmd](data)
+            else:
+                print('No data call')
+                self.func_map[cmd]()
 
     def UpdateDisplay(self, value):
         """ If a change has been made then update the display """
@@ -72,7 +80,12 @@ class MainWindow(QMainWindow):
 
         if key in self.key_table:
             cmd = self.key_table[key]
-            self.ExecuteCmd(cmd)
+            if QtCore.Qt.Key_0 <= key <= QtCore.Qt.Key_9:
+                num = int(key) - int(QtCore.Qt.Key_0)
+                print(key, num, cmd)
+                self.ExecuteCmd(cmd, num)
+            else:
+                self.ExecuteCmd(cmd)
 
 
 class Controller:
@@ -80,7 +93,7 @@ class Controller:
         self.model = _model
         self.view = _view
 
-        self.view.Connect({Cmds.INC: self.Increment, Cmds.DEC: self.Decrement})
+        self.view.Connect({Cmds.INC: self.Increment, Cmds.DEC: self.Decrement, Cmds.NUM: self.NumberCommand})
         self.view.UpdateDisplay(self.model.value)
 
     def Increment(self):
@@ -92,6 +105,9 @@ class Controller:
         print('Decrement called')
         self.model.Decrement()
         self.view.UpdateDisplay(self.model.value)
+
+    def NumberCommand(self, value):
+        print(value)
 
 
 @dataclass
